@@ -4,13 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.didispace.scca.core.domain.Env;
 import com.didispace.scca.core.service.impl.BaseUrlMaker;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.client.support.BasicAuthorizationInterceptor;
-import org.springframework.web.client.RestTemplate;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Created by 程序猿DD/翟永超 on 2018/4/24.
@@ -67,7 +66,10 @@ public class UrlMaker4Eureka extends BaseUrlMaker {
             homePageUrl = homePageUrl.substring(0, homePageUrl.length() - 1);
         }
 
-        return homePageUrl + env.getContextPath();
+      String configServerBaseUrl = homePageUrl + env.getContextPath();
+      return (configServerBaseUrl != null && configServerBaseUrl.endsWith("/"))
+          ? configServerBaseUrl.substring(0, configServerBaseUrl.length() - 1)
+          : configServerBaseUrl;
     }
 
     @Override
@@ -110,20 +112,19 @@ public class UrlMaker4Eureka extends BaseUrlMaker {
 
     /***
      * new RestTemplate instance for requesting Eureka server
-     * @param url
-     * @return  RestTemplate  instance
-     */
-    private RestTemplate newRestTemplateInstance(String url) {
-        RestTemplate restTemplate = new RestTemplate();
-        boolean isIncludedBasicAuth = url.contains("@");
-        if (isIncludedBasicAuth) {
-            String userNamePasswordString = url.substring(url.indexOf("://")+3, url.indexOf("@"));
-            String[] userNameAndPasswordArray = userNamePasswordString.split(":");
-            String userName = userNameAndPasswordArray[0];
-            String password = userNameAndPasswordArray[1];
-            restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(userName, password));
-        }
-        return restTemplate;
+   * @param url
+   * @return RestTemplate instance
+   */
+  private RestTemplate newRestTemplateInstance(String url) {
+    RestTemplate restTemplate = new RestTemplate();
+    boolean isIncludedBasicAuth = url.contains("@");
+    if (isIncludedBasicAuth) {
+      String userNamePasswordString = url.substring(url.indexOf("://") + 3, url.indexOf("@"));
+      String[] userNameAndPasswordArray = userNamePasswordString.split(":");
+      String userName = userNameAndPasswordArray[0];
+      String password = userNameAndPasswordArray[1];
+      restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(userName, password));
     }
-
+    return restTemplate;
+  }
 }

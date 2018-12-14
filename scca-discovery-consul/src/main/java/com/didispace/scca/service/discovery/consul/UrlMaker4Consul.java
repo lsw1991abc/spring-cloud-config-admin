@@ -40,7 +40,11 @@ public class UrlMaker4Consul extends BaseUrlMaker {
 
         String ip = healthService.getService().getAddress();
         String port = healthService.getService().getPort().toString();
-        return "http://" + ip + ":" + port + env.getContextPath();
+        String configServerBaseUrl = "http://" + ip + ":" + port + env.getContextPath();
+
+        return (configServerBaseUrl != null && configServerBaseUrl.endsWith("/"))
+            ? configServerBaseUrl.substring(0, configServerBaseUrl.length() - 1)
+            : configServerBaseUrl;
     }
 
     @Override
